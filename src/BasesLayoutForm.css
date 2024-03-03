@@ -1,0 +1,37 @@
+.layout-controls {
+  margin-top: 29px;
+
+  display: block;
+}
+
+.bases-layout-form {
+  position: fixed;
+
+  top: 54px;
+  right: 82px;
+  left: 66px;
+  bottom: 60px;
+
+  max-width: 308px;
+  max-height: 554px;
+  margin-right: auto;
+
+  overflow: auto;
+
+  z-index: 10;
+
+  border: 1px solid #2b0744;
+  border-radius: 15px;
+  box-shadow: 0px 2px 16px rgba(0, 0, 0, 0.06);
+
+  padding: 20px 0px 50px 32px;
+
+  background-color: #f0f0ffc2;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.no-bases-selected .layout-controls {
+  display: none;
+}

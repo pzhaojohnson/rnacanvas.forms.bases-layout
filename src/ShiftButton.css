@@ -1,0 +1,45 @@
+.shift-icon-arrow-shaft {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.shift-icon-arrow-head {
+  stroke: white;
+  stroke-width: 1;
+  fill: white;
+}
+
+.shift-button {
+  margin: 0px 0px 0px 12px;
+
+  border: none;
+  border-radius: 3px;
+  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+  outline: none;
+
+  width: 32px;
+  height: 32px;
+
+  padding: 0px;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  background-color: black;
+
+  cursor: grab;
+
+  pointer-events: auto;
+}
+
+.shift-button:hover {
+  background-color: #404044;
+}
+
+.shift-button:active {
+  background-color: #77777d;
+
+  cursor: grabbing;
+}

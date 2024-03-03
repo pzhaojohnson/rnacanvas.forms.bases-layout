@@ -1,0 +1,12 @@
+.header {
+  font-family: "Open Sans", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  font-style: normal;
+  color: black;
+
+  /**
+   * So that the form can be dragged around while clicking on top of the header.
+   */
+  pointer-events: none;
+}

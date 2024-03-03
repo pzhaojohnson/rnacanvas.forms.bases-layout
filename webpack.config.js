@@ -10,6 +10,15 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/i,
+        loader: 'css-loader',
+        options: {
+          modules: {
+            namedExport: true,
+          },
+        },
+      },
     ],
   },
   resolve: {

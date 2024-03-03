@@ -1,8 +1,11 @@
 const path = require('path');
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
 module.exports = {
   entry: './src/index.ts',
   mode: 'production',
+  plugins: [new MiniCssExtractPlugin()],
   module: {
     rules: [
       {
@@ -12,12 +15,19 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        loader: 'css-loader',
-        options: {
-          modules: {
-            namedExport: true,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
           },
-        },
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                namedExport: true,
+              },
+            },
+          },
+        ],
       },
     ],
   },

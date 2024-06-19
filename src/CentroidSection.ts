@@ -1,10 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { Centroid } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { isFiniteNumber } from '@rnacanvas/value-check';
-
-import { areWithin } from '@rnacanvas/math';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -14,89 +12,111 @@ import { TextInput } from './TextInput';
 
 import { TextInputField } from './TextInputField';
 
-import { ShiftButton } from './ShiftButton';
+import { Centroid } from '@rnacanvas/bases-layout';
 
-const coordinateNames = ['x', 'y'] as const;
+import { isFiniteNumber } from '@rnacanvas/value-check';
 
-type CoordinateName = typeof coordinateNames[number];
+import { areWithin } from '@rnacanvas/math';
 
-function CentroidCoordinateInput(coordinateName: CoordinateName) {
-  return {
-    for: (targetApp: App) => {
-      let input = TextInput();
+const centroidCoordinateNames = ['x', 'y'] as const;
 
-      let refresh = () => {
-        // only need to refresh if the input element is currently rendered
-        if (document.body.contains(input)) {
-          let centroid = new Centroid(targetApp.getSelectedBasesSorted());
-          let coordinate = centroid.get()[coordinateName];
+type CentroidCoordinateName = typeof centroidCoordinateNames[number];
 
-          // round to two decimal places and trim trailing zeros after the decimal point
-          input.value = Number.parseFloat(coordinate.toFixed(2)).toString();
-        }
-      };
+class CentroidCoordinateInput {
+  private readonly coordinateName: CentroidCoordinateName;
 
-      targetApp.refreshSignal.addListener(() => refresh());
+  private readonly selectedBases: LiveSet<Nucleobase>;
 
-      let handleSubmit = () => {
-        let value = Number.parseFloat(input.value);
+  private readonly options?: BasesLayoutFormOptions;
 
-        let centroid = new Centroid(targetApp.getSelectedBasesSorted());
+  readonly domNode = TextInput();
 
-        if (isFiniteNumber(value) && !areWithin(value, centroid.get()[coordinateName], 0.001)) {
-          targetApp.drawing.beforeMovingBases();
+  constructor(coordinateName: CentroidCoordinateName, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.coordinateName = coordinateName;
 
-          centroid.set({
-            x: centroid.get().x,
-            y: centroid.get().y,
-            [coordinateName]: value,
-          });
+    this.selectedBases = selectedBases;
 
-          targetApp.drawing.basesMoved();
-        }
-      };
+    this.options = options;
 
-      input.addEventListener('blur', handleSubmit);
+    this.domNode.addEventListener('blur', () => this.handleSubmit());
 
-      input.addEventListener('keyup', event => {
-        if (event.key.toLowerCase() == 'enter') {
-          handleSubmit();
-        }
-      });
+    this.domNode.addEventListener('keyup', event => {
+      if (event.key.toLowerCase() == 'enter') {
+        this.handleSubmit();
+      }
+    });
 
-      return input;
-    },
-  };
+    this.refresh();
+  }
+
+  refresh(): void {
+    let centroid = new Centroid([...this.selectedBases]);
+    let coordinate = centroid.get()[this.coordinateName];
+
+    // round to two decimal places and trim trailing zeros after the decimal point
+    this.domNode.value = Number.parseFloat(coordinate.toFixed(2)).toString();
+  }
+
+  private handleSubmit(): void {
+    // the submitted value
+    let value = Number.parseFloat(this.domNode.value);
+
+    // ignore nonfinite inputs
+    if (!isFiniteNumber(value)) { return; }
+
+    let centroid = new Centroid([...this.selectedBases]);
+
+    // require that the submitted value be far away enough from the current value
+    if (areWithin(value, centroid.get()[this.coordinateName], 0.001)) { return; }
+
+    this.options?.beforeMovingBases ? this.options.beforeMovingBases() : {};
+
+    centroid.set({
+      x: centroid.get().x,
+      y: centroid.get().y,
+      [this.coordinateName]: value,
+    });
+
+    this.options?.afterMovingBases ? this.options.afterMovingBases() : {};
+  }
 }
 
 export class CentroidSection {
-  static for(targetApp: App) {
-    let centroidXInput = CentroidCoordinateInput('x').for(targetApp);
-    let centroidYInput = CentroidCoordinateInput('y').for(targetApp);
+  private centroidXInput: CentroidCoordinateInput;
+  private centroidYInput: CentroidCoordinateInput;
 
-    let centroidXField = TextInputField('X', centroidXInput);
-    let centroidYField = TextInputField('Y', centroidYInput);
+  readonly domNode: HTMLDivElement;
+
+  constructor(private selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.centroidXInput = new CentroidCoordinateInput('x', selectedBases, options);
+    this.centroidYInput = new CentroidCoordinateInput('y', selectedBases, options);
+
+    let centroidXField = TextInputField('X', this.centroidXInput.domNode);
+    let centroidYField = TextInputField('Y', this.centroidYInput.domNode);
 
     $(centroidYField).css({ marginTop: '11px' });
 
-    let fields = document.createElement('div');
+    let fieldsContainer = document.createElement('div');
 
-    $(fields)
+    $(fieldsContainer)
       .append(centroidXField, centroidYField)
       .css({ display: 'flex', flexDirection: 'column' });
 
-    let centroidSectionLabel = document.createElement('p');
+    let centerLabel = document.createElement('p');
 
-    $(centroidSectionLabel)
-      .addClass(styles.centroidSectionLabel)
+    $(centerLabel)
+      .addClass(styles.centerLabel)
       .append('Center');
 
-    let centroidSection = document.createElement('div');
+    this.domNode = document.createElement('div');
 
-    $(centroidSection)
+    $(this.domNode)
       .addClass(styles.centroidSection)
-      .append(fields, centroidSectionLabel, ShiftButton.for(targetApp));
+      .append(fieldsContainer, centerLabel);
+  }
 
-    return centroidSection;
+  refresh(): void {
+    this.centroidXInput.refresh();
+    this.centroidYInput.refresh();
   }
 }

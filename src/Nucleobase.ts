@@ -1,7 +1,7 @@
 /**
  * A two-dimensional point.
  */
-export type Point = {
+type Point = {
   x: number;
   y: number;
 };
@@ -18,8 +18,8 @@ export interface Nucleobase {
   setCenterPoint(p: Point): void;
 
   /**
-   * Returns the center point of the nucleobase within the client coordinate system of the user
-   * (i.e., the same coordinate sytem used by methods such as `getBoundingClientRect`).
+   * Returns the center point of the nucleobase within the client coordinate system
+   * (i.e., the coordinate sytem used by methods such as `getBoundingClientRect`).
    */
   getCenterClientPoint(): Point;
 }

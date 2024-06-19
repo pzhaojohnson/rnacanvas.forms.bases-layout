@@ -1,8 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { linearize } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { isFiniteNumber } from '@rnacanvas/value-check';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -12,41 +12,43 @@ import { FiniteNumberInput } from './FiniteNumberInput';
 
 import { TextInputField } from './TextInputField';
 
-const defaultSpacing = 9;
+import { linearize } from '@rnacanvas/bases-layout';
 
-export class LinearizeSection {
-  static for(targetApp: App) {
-    let spacingInput = FiniteNumberInput();
+import { isFiniteNumber } from '@rnacanvas/value-check';
 
-    spacingInput.value = defaultSpacing.toString();
+const defaultSpacing = 10;
 
-    let spacingField = TextInputField('Spacing', spacingInput);
+export function LinearizeSection(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let spacingInput = FiniteNumberInput();
 
-    $(spacingField).css({ margin: '14px 0px 0px 14px' });
+  spacingInput.value = defaultSpacing.toString();
 
-    let linearizeButton = DarkSolidButton();
+  let spacingField = TextInputField('Spacing', spacingInput);
 
-    linearizeButton.textContent = 'Linearize';
+  $(spacingField).css({ margin: '14px 0px 0px 14px' });
 
-    linearizeButton.addEventListener('click', () => {
-      let spacing = Number.parseFloat(spacingInput.value);
+  let linearizeButton = DarkSolidButton();
 
-      spacing = isFiniteNumber(spacing) ? spacing : defaultSpacing;
+  linearizeButton.textContent = 'Linearize';
 
-      targetApp.drawing.beforeMovingBases();
-      linearize(targetApp.getSelectedBasesSorted(), { spacing });
-      targetApp.drawing.basesMoved();
-    });
+  linearizeButton.addEventListener('click', () => {
+    let spacing = Number.parseFloat(spacingInput.value);
 
-    let linearizeSection = document.createElement('div');
+    spacing = isFiniteNumber(spacing) ? spacing : defaultSpacing;
 
-    $(linearizeSection)
-      .append(linearizeButton)
-      .append(spacingField)
-      .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    linearize([...selectedBases], { spacing });
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    $(linearizeSection).css({ marginTop: '30px' });
+  let linearizeSection = document.createElement('div');
 
-    return linearizeSection;
-  }
+  $(linearizeSection)
+    .append(linearizeButton)
+    .append(spacingField)
+    .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+
+  $(linearizeSection).css({ marginTop: '30px' });
+
+  return linearizeSection;
 }

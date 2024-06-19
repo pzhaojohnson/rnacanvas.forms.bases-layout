@@ -1,8 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { circularize } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { isFiniteNumber } from '@rnacanvas/value-check';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -12,12 +12,21 @@ import { FiniteNumberInput } from './FiniteNumberInput';
 
 import { TextInputField } from './TextInputField';
 
-const defaultSpacing = 9;
+import { circularize } from '@rnacanvas/bases-layout';
 
-const defaultTerminiGap = 18;
+import { isFiniteNumber } from '@rnacanvas/value-check';
+
+const defaultSpacing = 10;
+
+const defaultTerminiGap = 20;
 
 export class CircularizeSection {
-  static for(targetApp: App) {
+  /**
+   * The actual DOM node that is the "circularize" section.
+   */
+  readonly domNode: HTMLDivElement;
+
+  constructor(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
     let spacingInput = FiniteNumberInput();
     let terminiGapInput = FiniteNumberInput();
 
@@ -42,23 +51,21 @@ export class CircularizeSection {
       spacing = isFiniteNumber(spacing) ? spacing : defaultSpacing;
       terminiGap = isFiniteNumber(terminiGap) ? terminiGap : defaultTerminiGap;
 
-      targetApp.drawing.beforeMovingBases();
+      options?.beforeMovingBases ? options.beforeMovingBases() : {};
 
-      circularize(targetApp.getSelectedBasesSorted(), { spacing, terminiGap });
+      circularize([...selectedBases], { spacing, terminiGap });
 
-      targetApp.drawing.basesMoved();
+      options?.afterMovingBases ? options.afterMovingBases() : {};
     });
 
-    let circularizeSection = document.createElement('div');
+    this.domNode = document.createElement('div');
 
-    $(circularizeSection)
+    $(this.domNode)
       .append(circularizeButton)
       .append(spacingField)
       .append(terminiGapField)
       .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-    $(circularizeSection).css({ marginTop: '56px' });
-
-    return circularizeSection;
+    $(this.domNode).css({ marginTop: '56px' });
   }
 }

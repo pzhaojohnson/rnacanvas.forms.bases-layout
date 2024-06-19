@@ -1,16 +1,20 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { rotate } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { direction } from '@rnacanvas/points';
-
-import { centroid } from '@rnacanvas/points';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
 import { SVG } from '@svgdotjs/svg.js';
 
 import * as styles from './RotateButton.css';
+
+import { rotate } from '@rnacanvas/bases-layout';
+
+import { direction } from '@rnacanvas/points';
+
+import { centroid } from '@rnacanvas/points';
 
 function RotateIcon() {
   let draw = SVG();
@@ -36,10 +40,15 @@ function RotateIcon() {
 }
 
 export class RotateButton {
-  static for(targetApp: App) {
-    let rotateButton = document.createElement('button');
+  /**
+   * The actual DOM node that is the rotate button.
+   */
+  readonly domNode: HTMLButtonElement;
 
-    $(rotateButton)
+  constructor(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.domNode = document.createElement('button');
+
+    $(this.domNode)
       .addClass(styles.rotateButton)
       .append(RotateIcon());
 
@@ -49,11 +58,11 @@ export class RotateButton {
 
     let previousDirection = 0;
 
-    rotateButton.addEventListener('mousedown', event => {
+    this.domNode.addEventListener('mousedown', event => {
       isActive = true;
 
       previousDirection = direction(
-        centroid(targetApp.getSelectedBasesSorted().map(b => b.getCenterClientPoint())),
+        centroid([...selectedBases].map(b => b.getCenterClientPoint())),
         { x: event.clientX, y: event.clientY },
       );
     });
@@ -61,35 +70,31 @@ export class RotateButton {
     window.addEventListener('mousemove', event => {
       if (isActive) {
         if (!movedBases) {
-          targetApp.drawing.beforeMovingBases();
-          targetApp.drawing.movingBases();
-          movedBases = true;
+          options?.beforeMovingBases ? options.beforeMovingBases() : {};
         }
 
-        let selectedBases = targetApp.getSelectedBasesSorted();
+        let selectedBasesArray = [...selectedBases];
 
         let currentDirection = direction(
-          centroid(selectedBases.map(b => b.getCenterClientPoint())),
+          centroid(selectedBasesArray.map(b => b.getCenterClientPoint())),
           { x: event.clientX, y: event.clientY },
         );
 
-        rotate(selectedBases, currentDirection - previousDirection);
+        rotate(selectedBasesArray, currentDirection - previousDirection);
 
         previousDirection = currentDirection;
 
-        targetApp.drawing.basesMoved();
+        movedBases = true;
       }
     });
 
     window.addEventListener('mouseup', () => {
       if (isActive && movedBases) {
-        targetApp.drawing.doneMovingBases();
+        options?.afterMovingBases ? options.afterMovingBases() : {};
       }
 
       isActive = false;
       movedBases = false;
     });
-
-    return rotateButton;
   }
 }

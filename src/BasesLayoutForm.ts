@@ -1,4 +1,10 @@
-import type { App } from './App';
+import type { Drawing } from './Drawing';
+
+import type { Nucleobase } from './Nucleobase';
+
+import type { LiveSet } from './LiveSet';
+
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -30,65 +36,85 @@ import { RadializeSection } from './RadializeSection';
 
 import { CloseButton } from './CloseButton';
 
-export class BasesLayoutForm {
-  /**
-   * Returns a bases-layout form for the target app.
-   *
-   * The returned bases-layout form will have CSS styles for fixed positioning
-   * (and a relatively high Z-index),
-   * meaning that it can be shown to the user just by appending it to the document body
-   * (and also hidden by removing it from the document body).
-   */
-  static for(targetApp: App) {
-    let layoutControls = document.createElement('div');
+/**
+ * Returns a bases-layout form for the target app.
+ *
+ * The returned bases-layout form will have CSS styles for fixed positioning
+ * (and a relatively high Z-index),
+ * meaning that it can be shown to the user just by appending it to the document body
+ * (and also hidden by removing it from the document body).
+ */
+export function BasesLayoutForm(targetDrawing: Drawing, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let numSelectedBasesView = new NumSelectedBasesView(selectedBases);
 
-    $(layoutControls).addClass(styles.layoutControls);
+  let centroidSection = new CentroidSection(selectedBases, options);
+  let moreCoordinatesSection = new MoreCoordinatesSection(selectedBases, options);
+  let directionSection = new DirectionSection(selectedBases, options);
+  let flipSection = FlipSection(selectedBases, options);
+  let linearizeSection = LinearizeSection(selectedBases, options);
+  let straightenButton = StraightenButton(selectedBases, options);
+  let circularizeSection = new CircularizeSection(selectedBases, options);
+  let roundSection = RoundSection(selectedBases, options);
+  let stemmifySection = StemmifySection(selectedBases, options);
+  let radializeSection = RadializeSection(targetDrawing, selectedBases, options);
 
-    $(layoutControls)
-      .append(CentroidSection.for(targetApp))
-      .append(MoreCoordinatesSection.for(targetApp))
-      .append(DirectionSection.for(targetApp))
-      .append(FlipSection.for(targetApp))
-      .append(LinearizeSection.for(targetApp))
-      .append(StraightenButton.for(targetApp))
-      .append(CircularizeSection.for(targetApp))
-      .append(RoundSection.for(targetApp))
-      .append(StemmifySection.for(targetApp))
-      .append(RadializeSection.for(targetApp));
+  let layoutControls = document.createElement('div');
 
-    let content = document.createElement('div');
+  $(layoutControls).addClass(styles.layoutControls);
 
-    $(content)
-      .append(NumSelectedBasesView.for(targetApp))
-      .append(layoutControls)
-      .css({ margin: '21px 0px 0px 18px' })
-      .css({ pointerEvents: 'none' });
+  $(layoutControls)
+    .append(centroidSection.domNode)
+    .append(moreCoordinatesSection.domNode)
+    .append(directionSection.domNode)
+    .append(flipSection)
+    .append(linearizeSection)
+    .append(straightenButton)
+    .append(circularizeSection.domNode)
+    .append(roundSection)
+    .append(stemmifySection)
+    .append(radializeSection);
 
-    let basesLayoutForm = document.createElement('div');
+  let content = document.createElement('div');
 
-    $(basesLayoutForm).addClass(styles.basesLayoutForm);
+  $(content)
+    .append(numSelectedBasesView.domNode)
+    .append(layoutControls)
+    .css({ margin: '21px 0px 0px 18px' })
+    .css({ pointerEvents: 'none' });
 
-    targetApp.refreshSignal.addListener(() => {
-      if (targetApp.getSelectedBasesSorted().length == 0) {
-        $(basesLayoutForm).addClass(styles.noBasesSelected);
-      } else {
-        $(basesLayoutForm).removeClass(styles.noBasesSelected);
-      }
-    });
+  let basesLayoutForm = document.createElement('div');
 
-    $(basesLayoutForm)
-      .append(Header())
-      .append(content);
+  $(basesLayoutForm).addClass(styles.basesLayoutForm);
 
-    let closeButton = CloseButton();
+  $(basesLayoutForm)
+    .append(Header())
+    .append(content);
 
-    $(closeButton).on('click', () => basesLayoutForm.remove());
+  let refreshableComponents = [numSelectedBasesView, centroidSection, moreCoordinatesSection, directionSection];
 
-    // place on top of everything else
-    // (to make sure close button is clickable)
-    $(basesLayoutForm)
-      .append(closeButton);
+  let refresh = () => {
+    refreshableComponents.forEach(component => component.refresh());
 
-    return basesLayoutForm;
-  }
+    if ([...selectedBases].length == 0) {
+      $(basesLayoutForm).addClass(styles.noBasesSelected);
+    } else {
+      $(basesLayoutForm).removeClass(styles.noBasesSelected);
+    }
+  };
+
+  let drawingObserver = new MutationObserver(() => refresh());
+  drawingObserver.observe(targetDrawing.domNode, { attributes: true, childList: true, characterData: true, subtree: true });
+
+  selectedBases.addEventListener('change', () => refresh());
+
+  let closeButton = CloseButton();
+
+  $(closeButton).on('click', () => basesLayoutForm.remove());
+
+  // place on top of everything else
+  // (to make sure close button is clickable)
+  $(basesLayoutForm)
+    .append(closeButton);
+
+  return basesLayoutForm;
 }

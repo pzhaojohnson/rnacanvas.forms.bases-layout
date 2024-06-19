@@ -1,8 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { stemmify } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { isFiniteNumber } from '@rnacanvas/value-check';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -12,51 +12,53 @@ import { FiniteNumberInput } from './FiniteNumberInput';
 
 import { TextInputField } from './TextInputField';
 
-const defaultBasePairLength = 18;
+import { stemmify } from '@rnacanvas/bases-layout';
 
-const defaultBasePairSpacing = 9;
+import { isFiniteNumber } from '@rnacanvas/value-check';
 
-export class StemmifySection {
-  static for(targetApp: App) {
-    let basePairLengthInput = FiniteNumberInput();
-    let basePairSpacingInput = FiniteNumberInput();
+const defaultBasePairLength = 20;
 
-    basePairLengthInput.value = defaultBasePairLength.toString();
-    basePairSpacingInput.value = defaultBasePairSpacing.toString();
+const defaultBasePairSpacing = 10;
 
-    let basePairLengthField = TextInputField('Base-Pair Length', basePairLengthInput);
-    let basePairSpacingField = TextInputField('Base-Pair Spacing', basePairSpacingInput);
+export function StemmifySection(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let basePairLengthInput = FiniteNumberInput();
+  let basePairSpacingInput = FiniteNumberInput();
 
-    $(basePairLengthField).css({ margin: '14px 0px 0px 14px' });
-    $(basePairSpacingField).css({ margin: '10px 0px 0px 14px' });
+  basePairLengthInput.value = defaultBasePairLength.toString();
+  basePairSpacingInput.value = defaultBasePairSpacing.toString();
 
-    let stemmifyButton = DarkSolidButton();
+  let basePairLengthField = TextInputField('Base-Pair Length', basePairLengthInput);
+  let basePairSpacingField = TextInputField('Base-Pair Spacing', basePairSpacingInput);
 
-    $(stemmifyButton)
-      .text('Stemmify');
+  $(basePairLengthField).css({ margin: '14px 0px 0px 14px' });
+  $(basePairSpacingField).css({ margin: '10px 0px 0px 14px' });
 
-    $(stemmifyButton).on('click', () => {
-      let basePairLength = Number.parseFloat(basePairLengthInput.value);
-      let basePairSpacing = Number.parseFloat(basePairSpacingInput.value);
+  let stemmifyButton = DarkSolidButton();
 
-      basePairLength = isFiniteNumber(basePairLength) ? basePairLength : defaultBasePairLength;
-      basePairSpacing = isFiniteNumber(basePairSpacing) ? basePairSpacing : defaultBasePairSpacing;
+  $(stemmifyButton)
+    .text('Stemmify');
 
-      targetApp.drawing.beforeMovingBases();
-      stemmify(targetApp.getSelectedBasesSorted(), { basePairLength, basePairSpacing });
-      targetApp.drawing.basesMoved();
-    });
+  $(stemmifyButton).on('click', () => {
+    let basePairLength = Number.parseFloat(basePairLengthInput.value);
+    let basePairSpacing = Number.parseFloat(basePairSpacingInput.value);
 
-    let stemmifySection = document.createElement('div');
+    basePairLength = isFiniteNumber(basePairLength) ? basePairLength : defaultBasePairLength;
+    basePairSpacing = isFiniteNumber(basePairSpacing) ? basePairSpacing : defaultBasePairSpacing;
 
-    $(stemmifySection)
-      .append(stemmifyButton)
-      .append(basePairLengthField)
-      .append(basePairSpacingField)
-      .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    stemmify([...selectedBases], { basePairLength, basePairSpacing });
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    $(stemmifySection).css({ marginTop: '40px' });
+  let stemmifySection = document.createElement('div');
 
-    return stemmifySection;
-  }
+  $(stemmifySection)
+    .append(stemmifyButton)
+    .append(basePairLengthField)
+    .append(basePairSpacingField)
+    .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+
+  $(stemmifySection).css({ marginTop: '40px' });
+
+  return stemmifySection;
 }

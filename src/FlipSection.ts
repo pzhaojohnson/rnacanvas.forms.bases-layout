@@ -1,8 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { flipX, flipY } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { flipSelfX, flipSelfY } from '@rnacanvas/bases-layout';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -10,54 +10,56 @@ import * as styles from './FlipSection.css';
 
 import { LightSolidButton } from './LightSolidButton';
 
-export class FlipSection {
-  static for(targetApp: App) {
-    let flipXButton = LightSolidButton();
-    let flipYButton = LightSolidButton();
-    let flipSelfXButton = LightSolidButton();
-    let flipSelfYButton = LightSolidButton();
+import { flipX, flipY } from '@rnacanvas/bases-layout';
 
-    $(flipXButton).text('X');
-    $(flipYButton).text('Y');
-    $(flipSelfXButton).text('Self-X');
-    $(flipSelfYButton).text('Self-Y');
+import { flipSelfX, flipSelfY } from '@rnacanvas/bases-layout';
 
-    $(flipXButton).on('click', () => {
-      targetApp.drawing.beforeMovingBases();
-      flipX(targetApp.getSelectedBasesSorted());
-      targetApp.drawing.basesMoved();
-    });
+export function FlipSection(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let flipXButton = LightSolidButton();
+  let flipYButton = LightSolidButton();
+  let flipSelfXButton = LightSolidButton();
+  let flipSelfYButton = LightSolidButton();
 
-    $(flipYButton).on('click', () => {
-      targetApp.drawing.beforeMovingBases();
-      flipY(targetApp.getSelectedBasesSorted());
-      targetApp.drawing.basesMoved();
-    });
+  $(flipXButton).text('X');
+  $(flipYButton).text('Y');
+  $(flipSelfXButton).text('Self-X');
+  $(flipSelfYButton).text('Self-Y');
 
-    $(flipSelfXButton).on('click', () => {
-      targetApp.drawing.beforeMovingBases();
-      flipSelfX(targetApp.getSelectedBasesSorted());
-      targetApp.drawing.basesMoved();
-    });
+  $(flipXButton).on('click', () => {
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    flipX([...selectedBases]);
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    $(flipSelfYButton).on('click', () => {
-      targetApp.drawing.beforeMovingBases();
-      flipSelfY(targetApp.getSelectedBasesSorted());
-      targetApp.drawing.basesMoved();
-    });
+  $(flipYButton).on('click', () => {
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    flipY([...selectedBases]);
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    let flipLabel = document.createElement('p');
+  $(flipSelfXButton).on('click', () => {
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    flipSelfX([...selectedBases]);
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    $(flipLabel)
-      .addClass(styles.flipLabel)
-      .text('Flip:');
+  $(flipSelfYButton).on('click', () => {
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    flipSelfY([...selectedBases]);
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    let flipSection = document.createElement('div');
+  let flipLabel = document.createElement('p');
 
-    $(flipSection)
-      .addClass(styles.flipSection)
-      .append(flipLabel, flipXButton, flipYButton, flipSelfXButton, flipSelfYButton);
+  $(flipLabel)
+    .addClass(styles.flipLabel)
+    .text('Flip:');
 
-    return flipSection;
-  }
+  let flipSection = document.createElement('div');
+
+  $(flipSection)
+    .addClass(styles.flipSection)
+    .append(flipLabel, flipXButton, flipYButton, flipSelfXButton, flipSelfYButton);
+
+  return flipSection;
 }

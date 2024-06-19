@@ -1,12 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { Direction } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { degrees, radians } from '@rnacanvas/math';
-
-import { isFiniteNumber } from '@rnacanvas/value-check';
-
-import { areWithin } from '@rnacanvas/math';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -16,64 +12,84 @@ import { TextInputField } from './TextInputField';
 
 import { RotateButton } from './RotateButton';
 
+import { Direction } from '@rnacanvas/bases-layout';
+
+import { degrees, radians } from '@rnacanvas/math';
+
+import { isFiniteNumber } from '@rnacanvas/value-check';
+
+import { areWithin } from '@rnacanvas/math';
+
 const degreeCharacter = String.fromCharCode(176);
 
 class DirectionInput {
-  static for(targetApp: App) {
-    let directionInput = TextInput();
+  /**
+   * The actual DOM node that is the "direction" input.
+   */
+  readonly domNode = TextInput();
 
-    let refresh = () => {
-      // only need to refresh if the direction input element is currently rendered
-      if (document.body.contains(directionInput)) {
-        let direction = new Direction(targetApp.getSelectedBasesSorted());
+  constructor(private selectedBases: LiveSet<Nucleobase>, private options?: BasesLayoutFormOptions) {
+    this.domNode.addEventListener('blur', () => this.handleSubmit());
 
-        // round to two decimal places and trim trailing zeros after the decimal point
-        directionInput.value = Number.parseFloat(degrees(direction.get()).toFixed(2)).toString();
-        directionInput.value += degreeCharacter;
-      }
-    };
-
-    targetApp.refreshSignal.addListener(() => refresh());
-
-    let handleSubmit = () => {
-      let value = radians(Number.parseFloat(directionInput.value));
-
-      let direction = new Direction(targetApp.getSelectedBasesSorted());
-
-      if (isFiniteNumber(value) && !areWithin(value, direction.get(), 0.001)) {
-        targetApp.drawing.beforeMovingBases();
-        direction.set(value);
-        targetApp.drawing.basesMoved();
-      }
-    };
-
-    directionInput.addEventListener('blur', handleSubmit);
-
-    directionInput.addEventListener('keyup', event => {
+    this.domNode.addEventListener('keyup', event => {
       if (event.key.toLowerCase() == 'enter') {
-        handleSubmit();
+        this.handleSubmit();
       }
     });
+  }
 
-    return directionInput;
+  refresh(): void {
+    let direction = new Direction([...this.selectedBases]);
+
+    // round to two decimal places and trim trailing zeros after the decimal point
+    this.domNode.value = Number.parseFloat(degrees(direction.get()).toFixed(2)).toString();
+    this.domNode.value += degreeCharacter;
+  }
+
+  handleSubmit(): void {
+    // the submitted value
+    let value = radians(Number.parseFloat(this.domNode.value));
+
+    if (!isFiniteNumber(value)) { return; }
+
+    let direction = new Direction([...this.selectedBases]);
+
+    if (areWithin(value, direction.get(), 0.001)) { return; }
+
+    this.options?.beforeMovingBases ? this.options.beforeMovingBases() : {};
+
+    direction.set(value);
+
+    this.options?.afterMovingBases ? this.options.afterMovingBases() : {};
   }
 }
 
 export class DirectionSection {
-  static for(targetApp: App) {
-    let directionInput = DirectionInput.for(targetApp);
+  /**
+   * The actual DOM node that is the "direction" section.
+   */
+  readonly domNode: HTMLDivElement;
 
-    let directionField = TextInputField('Rotation', directionInput);
+  private readonly directionInput: DirectionInput;
 
-    let directionSection = document.createElement('div');
+  constructor(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.directionInput = new DirectionInput(selectedBases, options);
 
-    $(directionSection)
+    let directionField = TextInputField('Rotation', this.directionInput.domNode);
+
+    let rotateButton = new RotateButton(selectedBases, options);
+
+    this.domNode = document.createElement('div');
+
+    $(this.domNode)
       .append(directionField)
-      .append(RotateButton.for(targetApp))
+      .append(rotateButton.domNode)
       .css({ display: 'flex', flexDirection: 'row', alignItems: 'center' });
 
-    $(directionSection).css({ marginTop: '33px' });
+    $(this.domNode).css({ marginTop: '33px' });
+  }
 
-    return directionSection;
+  refresh(): void {
+    this.directionInput.refresh();
   }
 }

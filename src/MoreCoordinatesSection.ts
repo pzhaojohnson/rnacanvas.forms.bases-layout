@@ -1,12 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { MinCenterX, MaxCenterX } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { MinCenterY, MaxCenterY } from '@rnacanvas/bases-layout';
-
-import { isFiniteNumber } from '@rnacanvas/value-check';
-
-import { areWithin } from '@rnacanvas/math';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -17,6 +13,14 @@ import * as styles from './MoreCoordinatesSection.css';
 import { TextInput } from './TextInput';
 
 import { TextInputField } from './TextInputField';
+
+import { MinCenterX, MaxCenterX } from '@rnacanvas/bases-layout';
+
+import { MinCenterY, MaxCenterY } from '@rnacanvas/bases-layout';
+
+import { isFiniteNumber } from '@rnacanvas/value-check';
+
+import { areWithin } from '@rnacanvas/math';
 
 function HeaderCaret() {
   let draw = SVG();
@@ -59,84 +63,116 @@ const Coordinates = {
   'Bottom': MaxCenterY,
 };
 
-function CoordinateInput(coordinateName: CoordinateName) {
-  return {
-    for: (targetApp: App) => {
-      let coordinateInput = TextInput();
+class CoordinateInput {
+  private readonly coordinateName: CoordinateName;
 
-      let Coordinate = Coordinates[coordinateName];
+  /**
+   * The type of coordinate that this "coordinate" input is for.
+   */
+  private readonly Coordinate: typeof Coordinates[CoordinateName];
 
-      let refresh = () => {
-        // only need to refresh if the input element is currently visible
-        if (document.body.contains(coordinateInput)) {
-          let coordinate = new Coordinate(targetApp.getSelectedBasesSorted());
+  private readonly selectedBases: LiveSet<Nucleobase>;
 
-          // round to two decimal places and remove trailing zeros after the decimal point
-          coordinateInput.value = Number.parseFloat(coordinate.get().toFixed(2)).toString();
-        }
-      };
+  private readonly options?: BasesLayoutFormOptions;
 
-      targetApp.refreshSignal.addListener(() => refresh());
+  /**
+   * The actual DOM node that is the "coordinate" input.
+   */
+  readonly domNode: HTMLInputElement;
 
-      let handleSubmit = () => {
-        let value = Number.parseFloat(coordinateInput.value);
+  constructor(coordinateName: CoordinateName, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.coordinateName = coordinateName;
 
-        let coordinate = new Coordinate(targetApp.getSelectedBasesSorted());
+    this.Coordinate = Coordinates[coordinateName];
 
-        if (isFiniteNumber(value) && !areWithin(value, coordinate.get(), 0.001)) {
-          targetApp.drawing.beforeMovingBases();
-          coordinate.set(value);
-          targetApp.drawing.basesMoved();
-        }
-      };
+    this.selectedBases = selectedBases;
 
-      coordinateInput.addEventListener('blur', handleSubmit);
+    this.options = options;
 
-      coordinateInput.addEventListener('keyup', event => {
-        if (event.key.toLowerCase() == 'enter') {
-          handleSubmit();
-        }
-      });
+    this.domNode = TextInput();
 
-      return coordinateInput;
-    },
-  };
+    this.domNode.addEventListener('blur', () => this.handleSubmit());
+
+    this.domNode.addEventListener('keyup', event => {
+      if (event.key.toLowerCase() == 'enter') {
+        this.handleSubmit();
+      }
+    });
+  }
+
+  refresh(): void {
+    let Coordinate = this.Coordinate
+    let coordinate = new Coordinate([...this.selectedBases]);
+
+    // round to two decimal places and remove trailing zeros after the decimal point
+    this.domNode.value = Number.parseFloat(coordinate.get().toFixed(2)).toString();
+  }
+
+  private handleSubmit(): void {
+    // the submitted value
+    let value = Number.parseFloat(this.domNode.value);
+    if (!isFiniteNumber(value)) { return; }
+
+    let Coordinate = this.Coordinate;
+    let coordinate = new Coordinate([...this.selectedBases]);
+
+    if (areWithin(value, coordinate.get(), 0.001)) { return; }
+
+    this.options?.beforeMovingBases ? this.options.beforeMovingBases() : {};
+    coordinate.set(value);
+    this.options?.afterMovingBases ? this.options.afterMovingBases : {};
+  }
 }
 
-function CoordinateField(coordinateName: CoordinateName) {
-  return {
-    for: (targetApp: App) => {
-      let coordinateInput = CoordinateInput(coordinateName).for(targetApp);
+class CoordinateField {
+  private readonly coordinateInput: CoordinateInput;
 
-      return TextInputField(coordinateName, coordinateInput);
-    },
-  };
+  /**
+   * The actual DOM node that is the "coordinate" field.
+   */
+  readonly domNode: ReturnType<typeof TextInputField>;
+
+  constructor(coordinateName: CoordinateName, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    this.coordinateInput = new CoordinateInput(coordinateName, selectedBases, options);
+
+    this.domNode = TextInputField(coordinateName, this.coordinateInput.domNode);
+  }
+
+  refresh(): void {}
 }
 
 export class MoreCoordinatesSection {
-  static for(targetApp: App) {
+  private readonly fields: CoordinateField[];
+
+  /**
+   * The actual DOM node that is the "more coordinates" section.
+   */
+  readonly domNode: HTMLDivElement;
+
+  constructor(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
     let header = Header();
 
     let content = document.createElement('div');
 
+    this.fields = coordinateNames.map(name => new CoordinateField(name, selectedBases, options));
+
     $(content)
       .addClass(styles.content)
-      .append(CoordinateField('Left').for(targetApp))
-      .append(CoordinateField('Right').for(targetApp))
-      .append(CoordinateField('Top').for(targetApp))
-      .append(CoordinateField('Bottom').for(targetApp));
+      .append(...this.fields.map(f => f.domNode));
 
-    let moreCoordinatesSection = document.createElement('div');
+    this.domNode = document.createElement('div');
 
-    $(moreCoordinatesSection)
+    $(this.domNode)
       .addClass(styles.moreCoordinatesSection);
 
-    $(header).on('click', () => $(moreCoordinatesSection).toggleClass(styles.open));
+    $(header).on('click', () => $(this.domNode).toggleClass(styles.open));
 
-    $(moreCoordinatesSection)
+    $(this.domNode)
       .append(header)
       .append(content);
+  }
 
-    return moreCoordinatesSection;
+  refresh(): void {
+    this.fields.forEach(f => f.refresh());
   }
 }

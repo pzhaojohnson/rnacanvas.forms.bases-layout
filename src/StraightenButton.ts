@@ -1,25 +1,27 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { straighten } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
+
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
 import { DarkSolidButton } from './DarkSolidButton';
 
-export class StraightenButton {
-  static for(targetApp: App) {
-    let straightenButton = DarkSolidButton();
+import { straighten } from '@rnacanvas/bases-layout';
 
-    straightenButton.textContent = 'Straighten';
+export function StraightenButton(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let straightenButton = DarkSolidButton();
 
-    $(straightenButton).css({ marginTop: '30px' });
+  straightenButton.textContent = 'Straighten';
 
-    straightenButton.addEventListener('click', () => {
-      targetApp.drawing.beforeMovingBases();
-      straighten(targetApp.getSelectedBasesSorted());
-      targetApp.drawing.basesMoved();
-    });
+  $(straightenButton).css({ marginTop: '30px' });
 
-    return straightenButton;
-  }
+  straightenButton.addEventListener('click', () => {
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    straighten([...selectedBases]);
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
+
+  return straightenButton;
 }

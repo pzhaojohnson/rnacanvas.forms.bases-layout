@@ -1,8 +1,8 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
 
-import { round } from '@rnacanvas/bases-layout';
+import type { LiveSet } from './LiveSet';
 
-import { isFiniteNumber } from '@rnacanvas/value-check';
+import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
 import * as $ from 'jquery';
 
@@ -12,42 +12,44 @@ import { FiniteNumberInput } from './FiniteNumberInput';
 
 import { TextInputField } from './TextInputField';
 
-const defaultSpacing = 9;
+import { round } from '@rnacanvas/bases-layout';
 
-export class RoundSection {
-  static for(targetApp: App) {
-    let spacingInput = FiniteNumberInput();
+import { isFiniteNumber } from '@rnacanvas/value-check';
 
-    spacingInput.value = defaultSpacing.toString();
+const defaultSpacing = 10;
 
-    let spacingField = TextInputField('Spacing', spacingInput);
+export function RoundSection(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+  let spacingInput = FiniteNumberInput();
 
-    $(spacingField).css({ margin: '14px 0px 0px 14px' });
+  spacingInput.value = defaultSpacing.toString();
 
-    let roundButton = DarkSolidButton();
+  let spacingField = TextInputField('Spacing', spacingInput);
 
-    $(roundButton)
-      .text('Round');
+  $(spacingField).css({ margin: '14px 0px 0px 14px' });
 
-    $(roundButton).on('click', () => {
-      let spacing = Number.parseFloat(spacingInput.value);
+  let roundButton = DarkSolidButton();
 
-      spacing = isFiniteNumber(spacing) ? spacing : defaultSpacing;
+  $(roundButton)
+    .text('Round');
 
-      targetApp.drawing.beforeMovingBases();
-      round(targetApp.getSelectedBasesSorted(), { spacing });
-      targetApp.drawing.basesMoved();
-    });
+  $(roundButton).on('click', () => {
+    let spacing = Number.parseFloat(spacingInput.value);
 
-    let roundSection = document.createElement('div');
+    spacing = isFiniteNumber(spacing) ? spacing : defaultSpacing;
 
-    $(roundSection)
-      .append(roundButton)
-      .append(spacingField)
-      .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+    options?.beforeMovingBases ? options.beforeMovingBases() : {};
+    round([...selectedBases], { spacing });
+    options?.afterMovingBases ? options.afterMovingBases() : {};
+  });
 
-    $(roundSection).css({ marginTop: '40px' });
+  let roundSection = document.createElement('div');
 
-    return roundSection;
-  }
+  $(roundSection)
+    .append(roundButton)
+    .append(spacingField)
+    .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
+
+  $(roundSection).css({ marginTop: '40px' });
+
+  return roundSection;
 }

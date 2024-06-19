@@ -1,4 +1,6 @@
-import type { App } from './App';
+import type { Nucleobase } from './Nucleobase';
+
+import type { LiveSet } from './LiveSet';
 
 import * as $ from 'jquery';
 
@@ -8,30 +10,38 @@ import * as styles from './NumSelectedBasesView.css';
  * Shows the number of selected bases to the user.
  */
 export class NumSelectedBasesView {
-  static for(targetApp: App) {
-    let numSpan = document.createElement('span');
+  /**
+   * The actual DOM node that is the "number of selected bases" view.
+   */
+  readonly domNode: HTMLParagraphElement;
 
-    $(numSpan).addClass(styles.numSpan);
+  /**
+   * The span element containing the number of currently selected bases.
+   */
+  private readonly numSpan: HTMLSpanElement;
 
-    let trailingText = document.createElement('span');
+  /**
+   * Text trailing the number span.
+   */
+  private readonly trailingText: HTMLSpanElement;
 
-    let numSelectedBasesView = document.createElement('p');
+  constructor(private selectedBases: LiveSet<Nucleobase>) {
+    this.numSpan = document.createElement('span');
 
-    $(numSelectedBasesView)
+    $(this.numSpan).addClass(styles.numSpan);
+
+    this.trailingText = document.createElement('span');
+
+    this.domNode = document.createElement('p');
+
+    $(this.domNode)
       .addClass(styles.numSelectedBasesView)
-      .append(numSpan, trailingText);
+      .append(this.numSpan, this.trailingText);
+  }
 
-    let refresh = () => {
-      // don't need to refresh if the component is not visible
-      if (document.body.contains(numSelectedBasesView)) {
-        let num = targetApp.getSelectedBasesSorted().length;
-        numSpan.textContent = num.toString();
-        trailingText.textContent = num == 1 ? ' base is selected.' : ' bases are selected.';
-      }
-    };
-
-    targetApp.refreshSignal.addListener(() => refresh());
-
-    return numSelectedBasesView;
+  refresh(): void {
+    let num = [...this.selectedBases].length;
+    this.numSpan.textContent = num.toString();
+    this.trailingText.textContent = num == 1 ? ' base is selected.' : ' bases are selected.';
   }
 }

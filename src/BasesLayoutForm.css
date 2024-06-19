@@ -5,7 +5,7 @@
 }
 
 .bases-layout-form {
-  position: fixed;
+  position: absolute;
 
   top: 54px;
   right: 82px;
@@ -17,8 +17,6 @@
   margin-right: auto;
 
   overflow: auto;
-
-  z-index: 10;
 
   border: 1px solid #2b0744;
   border-radius: 15px;

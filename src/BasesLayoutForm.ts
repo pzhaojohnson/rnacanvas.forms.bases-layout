@@ -36,10 +36,17 @@ import { RadializeSection } from './RadializeSection';
 
 import { CloseButton } from './CloseButton';
 
+import { FormFronter } from '@rnacanvas/forms';
+
+import { DragTranslater } from '@rnacanvas/forms';
+
 interface Refreshable {
   refresh(): void;
 }
 
+/**
+ * This form is created with its own `FormFronter` and `DragTranslater` instances by default.
+ */
 export class BasesLayoutForm {
   /**
    * The actual DOM node that is the bases-layout form.
@@ -47,6 +54,10 @@ export class BasesLayoutForm {
   private readonly domNode: HTMLDivElement;
 
   private readonly refreshableComponents: Refreshable[];
+
+  private readonly fronter: FormFronter;
+
+  private readonly dragTranslater: DragTranslater;
 
   constructor(targetDrawing: Drawing, private selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
     let numSelectedBasesView = new NumSelectedBasesView(selectedBases);
@@ -111,6 +122,10 @@ export class BasesLayoutForm {
     // (to make sure the close button is clickable)
     $(this.domNode)
       .append(closeButton);
+
+    this.fronter = new FormFronter(this.domNode);
+
+    this.dragTranslater = new DragTranslater(this.domNode);
   }
 
   private refresh(): void {
@@ -129,6 +144,8 @@ export class BasesLayoutForm {
   appendTo(container: Node): void {
     // make sure form contents are up-to-date
     this.refresh();
+
+    this.dragTranslater.untranslate();
 
     container.appendChild(this.domNode);
   }

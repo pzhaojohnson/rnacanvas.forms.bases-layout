@@ -36,85 +36,120 @@ import { RadializeSection } from './RadializeSection';
 
 import { CloseButton } from './CloseButton';
 
-/**
- * Returns a bases-layout form for the target app.
- *
- * The returned bases-layout form will have CSS styles for fixed positioning
- * (and a relatively high Z-index),
- * meaning that it can be shown to the user just by appending it to the document body
- * (and also hidden by removing it from the document body).
- */
-export function BasesLayoutForm(targetDrawing: Drawing, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
-  let numSelectedBasesView = new NumSelectedBasesView(selectedBases);
+interface Refreshable {
+  refresh(): void;
+}
 
-  let centroidSection = new CentroidSection(selectedBases, options);
-  let moreCoordinatesSection = new MoreCoordinatesSection(selectedBases, options);
-  let directionSection = new DirectionSection(selectedBases, options);
-  let flipSection = FlipSection(selectedBases, options);
-  let linearizeSection = LinearizeSection(selectedBases, options);
-  let straightenButton = StraightenButton(selectedBases, options);
-  let circularizeSection = new CircularizeSection(selectedBases, options);
-  let roundSection = RoundSection(selectedBases, options);
-  let stemmifySection = StemmifySection(selectedBases, options);
-  let radializeSection = RadializeSection(targetDrawing, selectedBases, options);
+export class BasesLayoutForm {
+  /**
+   * The actual DOM node that is the bases-layout form.
+   */
+  private readonly domNode: HTMLDivElement;
 
-  let layoutControls = document.createElement('div');
+  private readonly refreshableComponents: Refreshable[];
 
-  $(layoutControls).addClass(styles.layoutControls);
+  constructor(targetDrawing: Drawing, private selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+    let numSelectedBasesView = new NumSelectedBasesView(selectedBases);
 
-  $(layoutControls)
-    .append(centroidSection.domNode)
-    .append(moreCoordinatesSection.domNode)
-    .append(directionSection.domNode)
-    .append(flipSection)
-    .append(linearizeSection)
-    .append(straightenButton)
-    .append(circularizeSection.domNode)
-    .append(roundSection)
-    .append(stemmifySection)
-    .append(radializeSection);
+    let centroidSection = new CentroidSection(selectedBases, options);
+    let moreCoordinatesSection = new MoreCoordinatesSection(selectedBases, options);
+    let directionSection = new DirectionSection(selectedBases, options);
+    let flipSection = FlipSection(selectedBases, options);
+    let linearizeSection = LinearizeSection(selectedBases, options);
+    let straightenButton = StraightenButton(selectedBases, options);
+    let circularizeSection = new CircularizeSection(selectedBases, options);
+    let roundSection = RoundSection(selectedBases, options);
+    let stemmifySection = StemmifySection(selectedBases, options);
+    let radializeSection = RadializeSection(targetDrawing, selectedBases, options);
 
-  let content = document.createElement('div');
+    let layoutControls = document.createElement('div');
 
-  $(content)
-    .append(numSelectedBasesView.domNode)
-    .append(layoutControls)
-    .css({ margin: '24px 0px 0px 21px' })
-    .css({ pointerEvents: 'none' });
+    $(layoutControls).addClass(styles.layoutControls);
 
-  let basesLayoutForm = document.createElement('div');
+    $(layoutControls)
+      .append(centroidSection.domNode)
+      .append(moreCoordinatesSection.domNode)
+      .append(directionSection.domNode)
+      .append(flipSection)
+      .append(linearizeSection)
+      .append(straightenButton)
+      .append(circularizeSection.domNode)
+      .append(roundSection)
+      .append(stemmifySection)
+      .append(radializeSection);
 
-  $(basesLayoutForm).addClass(styles.basesLayoutForm);
+    let content = document.createElement('div');
 
-  $(basesLayoutForm)
-    .append(Header())
-    .append(content);
+    $(content)
+      .append(numSelectedBasesView.domNode)
+      .append(layoutControls)
+      .css({ margin: '24px 0px 0px 21px' })
+      .css({ pointerEvents: 'none' });
 
-  let refreshableComponents = [numSelectedBasesView, centroidSection, moreCoordinatesSection, directionSection];
+    this.domNode = document.createElement('div');
 
-  let refresh = () => {
-    refreshableComponents.forEach(component => component.refresh());
+    $(this.domNode).addClass(styles.basesLayoutForm);
 
-    if ([...selectedBases].length == 0) {
-      $(basesLayoutForm).addClass(styles.noBasesSelected);
+    $(this.domNode)
+      .append(Header())
+      .append(content);
+
+    this.refreshableComponents = [numSelectedBasesView, centroidSection, moreCoordinatesSection, directionSection];
+
+    // refresh the bases-layout form whenever the target drawing changes
+    // (if the bases-layout form is open)
+    let drawingObserver = new MutationObserver(() => this.isOpen() ? this.refresh() : {});
+    drawingObserver.observe(targetDrawing.domNode, { attributes: true, childList: true, characterData: true, subtree: true });
+
+    selectedBases.addEventListener('change', () => this.isOpen() ? this.refresh() : {});
+
+    let closeButton = CloseButton();
+
+    $(closeButton).on('click', () => this.close());
+
+    // place on top of everything else
+    // (to make sure the close button is clickable)
+    $(this.domNode)
+      .append(closeButton);
+  }
+
+  private refresh(): void {
+    this.refreshableComponents.forEach(component => component.refresh());
+
+    if ([...this.selectedBases].length == 0) {
+      $(this.domNode).addClass(styles.noBasesSelected);
     } else {
-      $(basesLayoutForm).removeClass(styles.noBasesSelected);
+      $(this.domNode).removeClass(styles.noBasesSelected);
     }
-  };
+  }
 
-  let drawingObserver = new MutationObserver(() => refresh());
-  drawingObserver.observe(targetDrawing.domNode, { attributes: true, childList: true, characterData: true, subtree: true });
+  /**
+   * Appends the bases-layout form to the provided container node.
+   */
+  appendTo(container: Node): void {
+    // make sure form contents are up-to-date
+    this.refresh();
 
-  selectedBases.addEventListener('change', () => refresh());
+    container.appendChild(this.domNode);
+  }
 
-  let closeButton = CloseButton();
+  /**
+   * Removes the bases-layout form from any parent container node that it is in.
+   *
+   * Has no effect if the bases-layout form had no parent container node to begin with.
+   */
+  remove(): void {
+    this.domNode.remove();
+  }
 
-  $(closeButton).on('click', () => basesLayoutForm.remove());
+  private isOpen(): boolean {
+    return document.contains(this.domNode);
+  }
 
-  // place on top of everything else
-  // (to make sure close button is clickable)
-  $(basesLayoutForm)
-    .append(closeButton);
-
-  return basesLayoutForm;
+  /**
+   * Essentially an alias for the `remove` method.
+   */
+  private close(): void {
+    this.domNode.remove();
+  }
 }

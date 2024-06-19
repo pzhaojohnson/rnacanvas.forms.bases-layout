@@ -138,7 +138,9 @@ class CoordinateField {
     this.domNode = TextInputField(coordinateName, this.coordinateInput.domNode);
   }
 
-  refresh(): void {}
+  refresh(): void {
+    this.coordinateInput.refresh();
+  }
 }
 
 export class MoreCoordinatesSection {

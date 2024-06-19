@@ -49,7 +49,7 @@ export function RoundSection(selectedBases: LiveSet<Nucleobase>, options?: Bases
     .append(spacingField)
     .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-  $(roundSection).css({ marginTop: '40px' });
+  $(roundSection).css({ marginTop: '41px' });
 
   return roundSection;
 }

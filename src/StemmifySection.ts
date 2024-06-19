@@ -58,7 +58,7 @@ export function StemmifySection(selectedBases: LiveSet<Nucleobase>, options?: Ba
     .append(basePairSpacingField)
     .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-  $(stemmifySection).css({ marginTop: '40px' });
+  $(stemmifySection).css({ marginTop: '41px' });
 
   return stemmifySection;
 }

@@ -79,7 +79,7 @@ export function BasesLayoutForm(targetDrawing: Drawing, selectedBases: LiveSet<N
   $(content)
     .append(numSelectedBasesView.domNode)
     .append(layoutControls)
-    .css({ margin: '21px 0px 0px 18px' })
+    .css({ margin: '24px 0px 0px 21px' })
     .css({ pointerEvents: 'none' });
 
   let basesLayoutForm = document.createElement('div');

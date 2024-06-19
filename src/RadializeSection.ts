@@ -76,7 +76,7 @@ export function RadializeSection(targetDrawing: Drawing, selectedBases: LiveSet<
     .append(hairpinLoopSpacingField)
     .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-  $(radializeSection).css({ marginTop: '40px' });
+  $(radializeSection).css({ marginTop: '41px' });
 
   return radializeSection;
 }

@@ -48,7 +48,7 @@ export function LinearizeSection(selectedBases: LiveSet<Nucleobase>, options?: B
     .append(spacingField)
     .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-  $(linearizeSection).css({ marginTop: '30px' });
+  $(linearizeSection).css({ marginTop: '31px' });
 
   return linearizeSection;
 }

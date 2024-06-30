@@ -36,8 +36,6 @@ import { RadializeSection } from './RadializeSection';
 
 import { CloseButton } from './CloseButton';
 
-import { FormFronter } from '@rnacanvas/forms';
-
 import { DragTranslater } from '@rnacanvas/forms';
 
 interface Refreshable {
@@ -54,8 +52,6 @@ export class BasesLayoutForm {
   private readonly domNode: HTMLDivElement;
 
   private readonly refreshableComponents: Refreshable[];
-
-  private readonly fronter: FormFronter;
 
   private readonly dragTranslater: DragTranslater;
 
@@ -122,8 +118,6 @@ export class BasesLayoutForm {
     // (to make sure the close button is clickable)
     $(this.domNode)
       .append(closeButton);
-
-    this.fronter = new FormFronter(this.domNode);
 
     this.dragTranslater = new DragTranslater(this.domNode);
   }

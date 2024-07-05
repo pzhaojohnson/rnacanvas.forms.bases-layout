@@ -1,6 +1,6 @@
 {
   "name": "@rnacanvas/forms.bases-layout",
-  "version": "3.1.4",
+  "version": "3.1.5",
   "description": "The bases-layout form",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@rnacanvas/bases-layout": "^2.1.0",
-    "@rnacanvas/forms": "^1.2.0",
+    "@rnacanvas/forms": "^2.0.0",
     "@rnacanvas/value-check": "^1.6.2",
     "@svgdotjs/svg.js": "^3.2.0",
     "@types/jquery": "^3.5.29",

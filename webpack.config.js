@@ -19,6 +19,7 @@ module.exports = {
             options: {
               modules: {
                 namedExport: true,
+                localIdentHashSalt: '1723943923328', // make unique for every package
               },
             },
           },

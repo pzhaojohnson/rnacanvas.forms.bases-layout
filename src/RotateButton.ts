@@ -63,36 +63,40 @@ export class RotateButton {
 
       let selectedBasesArray = [...selectedBases];
 
-      let firstSelectedBase = selectedBasesArray[0];
-      let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
+      if (selectedBasesArray.length > 0) {
+        let firstSelectedBase = selectedBasesArray[0];
+        let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
 
-      previousDirection = direction(
-        midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
-        { x: event.clientX, y: event.clientY },
-      );
+        previousDirection = direction(
+          midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
+          { x: event.clientX, y: event.clientY },
+        );
+      }
     });
 
     window.addEventListener('mousemove', event => {
       if (isActive) {
-        if (!movedBases) {
-          options?.beforeMovingBases ? options.beforeMovingBases() : {};
-        }
-
         let selectedBasesArray = [...selectedBases];
 
-        let firstSelectedBase = selectedBasesArray[0];
-        let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
+        if (selectedBasesArray.length > 0) {
+          let firstSelectedBase = selectedBasesArray[0];
+          let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
 
-        let currentDirection = direction(
-          midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
-          { x: event.clientX, y: event.clientY },
-        );
+          let currentDirection = direction(
+            midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
+            { x: event.clientX, y: event.clientY },
+          );
 
-        rotate(selectedBasesArray, currentDirection - previousDirection);
+          if (!movedBases) {
+            options?.beforeMovingBases ? options.beforeMovingBases() : {};
+          }
 
-        previousDirection = currentDirection;
+          rotate(selectedBasesArray, currentDirection - previousDirection);
 
-        movedBases = true;
+          movedBases = true;
+
+          previousDirection = currentDirection;
+        }
       }
     });
 

@@ -14,7 +14,7 @@ import { rotate } from '@rnacanvas/bases-layout';
 
 import { direction } from '@rnacanvas/points';
 
-import { centroid } from '@rnacanvas/points';
+import { midpoint } from '@rnacanvas/points';
 
 function RotateIcon() {
   let draw = SVG();
@@ -61,8 +61,13 @@ export class RotateButton {
     this.domNode.addEventListener('mousedown', event => {
       isActive = true;
 
+      let selectedBasesArray = [...selectedBases];
+
+      let firstSelectedBase = selectedBasesArray[0];
+      let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
+
       previousDirection = direction(
-        centroid([...selectedBases].map(b => b.getCenterClientPoint())),
+        midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
         { x: event.clientX, y: event.clientY },
       );
     });
@@ -75,8 +80,11 @@ export class RotateButton {
 
         let selectedBasesArray = [...selectedBases];
 
+        let firstSelectedBase = selectedBasesArray[0];
+        let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
+
         let currentDirection = direction(
-          centroid(selectedBasesArray.map(b => b.getCenterClientPoint())),
+          midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
           { x: event.clientX, y: event.clientY },
         );
 

@@ -21,5 +21,5 @@ export interface Nucleobase {
    * Returns the center point of the nucleobase within the client coordinate system
    * (i.e., the coordinate sytem used by methods such as `getBoundingClientRect`).
    */
-  getCenterClientPoint(): Point;
+  getClientCenterPoint(): Point;
 }

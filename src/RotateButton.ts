@@ -68,7 +68,7 @@ export class RotateButton {
         let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
 
         previousDirection = direction(
-          midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
+          midpoint(firstSelectedBase.getClientCenterPoint(), lastSelectedBase.getClientCenterPoint()),
           { x: event.clientX, y: event.clientY },
         );
       }
@@ -83,7 +83,7 @@ export class RotateButton {
           let lastSelectedBase = selectedBasesArray[selectedBasesArray.length - 1];
 
           let currentDirection = direction(
-            midpoint(firstSelectedBase.getCenterClientPoint(), lastSelectedBase.getCenterClientPoint()),
+            midpoint(firstSelectedBase.getClientCenterPoint(), lastSelectedBase.getClientCenterPoint()),
             { x: event.clientX, y: event.clientY },
           );
 

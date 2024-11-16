@@ -6,7 +6,7 @@ import type { LiveSet } from './LiveSet';
 
 import type { BasesLayoutFormOptions } from './BasesLayoutFormOptions';
 
-import { radialize } from '@rnacanvas/bases-layout';
+import { untangle } from '@rnacanvas/bases-layout';
 
 import { isFiniteNumber } from '@rnacanvas/value-check';
 
@@ -26,7 +26,7 @@ const defaultBasePairSpacing = 10;
 
 const defaultHairpinLoopSpacing = 10;
 
-export function RadializeSection(targetDrawing: Drawing, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
+export function UntangleSection(targetDrawing: Drawing, selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
   let spacingInput = FiniteNumberInput();
   let basePairSpacingInput = FiniteNumberInput();
   let hairpinLoopSpacingInput = FiniteNumberInput();
@@ -43,11 +43,11 @@ export function RadializeSection(targetDrawing: Drawing, selectedBases: LiveSet<
   $(basePairSpacingField).css({ margin: '10px 0px 0px 14px' });
   $(hairpinLoopSpacingField).css({ margin: '10px 0px 0px 14px' });
 
-  let radializeButton = DarkSolidButton();
+  let untangleButton = DarkSolidButton();
 
-  $(radializeButton).text('Radialize');
+  $(untangleButton).text('Untangle');
 
-  $(radializeButton).on('click', () => {
+  $(untangleButton).on('click', () => {
     let spacing = Number.parseFloat(spacingInput.value);
     let basePairSpacing = Number.parseFloat(basePairSpacingInput.value);
     let hairpinLoopSpacing = Number.parseFloat(hairpinLoopSpacingInput.value);
@@ -63,20 +63,20 @@ export function RadializeSection(targetDrawing: Drawing, selectedBases: LiveSet<
       .map(sb => [sb.base1, sb.base2]);
 
     options?.beforeMovingBases ? options.beforeMovingBases() : {};
-    radialize([...selectedBases], basePairs, { spacing, basePairSpacing, hairpinLoopSpacing });
+    untangle([...selectedBases], basePairs, { spacing, basePairSpacing, hairpinLoopSpacing });
     options?.afterMovingBases ? options.afterMovingBases() : {};
   });
 
-  let radializeSection = document.createElement('div');
+  let untangleSection = document.createElement('div');
 
-  $(radializeSection)
-    .append(radializeButton)
+  $(untangleSection)
+    .append(untangleButton)
     .append(spacingField)
     .append(basePairSpacingField)
     .append(hairpinLoopSpacingField)
     .css({ display: 'flex', flexDirection: 'column', alignItems: 'start' });
 
-  $(radializeSection).css({ marginTop: '41px' });
+  $(untangleSection).css({ marginTop: '41px' });
 
-  return radializeSection;
+  return untangleSection;
 }

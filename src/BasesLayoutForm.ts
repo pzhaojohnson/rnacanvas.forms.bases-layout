@@ -32,7 +32,7 @@ import { RoundSection } from './RoundSection';
 
 import { StemmifySection } from './StemmifySection';
 
-import { RadializeSection } from './RadializeSection';
+import { UntangleSection } from './UntangleSection';
 
 import { CloseButton } from './CloseButton';
 
@@ -67,7 +67,7 @@ export class BasesLayoutForm {
     let circularizeSection = new CircularizeSection(selectedBases, options);
     let roundSection = RoundSection(selectedBases, options);
     let stemmifySection = StemmifySection(selectedBases, options);
-    let radializeSection = RadializeSection(targetDrawing, selectedBases, options);
+    let untangleSection = UntangleSection(targetDrawing, selectedBases, options);
 
     let layoutControls = document.createElement('div');
 
@@ -83,7 +83,7 @@ export class BasesLayoutForm {
       .append(circularizeSection.domNode)
       .append(roundSection)
       .append(stemmifySection)
-      .append(radializeSection);
+      .append(untangleSection);
 
     let content = document.createElement('div');
 

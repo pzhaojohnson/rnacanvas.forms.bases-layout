@@ -43,10 +43,10 @@ export class RotateButton {
   /**
    * The actual DOM node that is the rotate button.
    */
-  readonly domNode: HTMLButtonElement;
+  readonly domNode;
 
   constructor(selectedBases: LiveSet<Nucleobase>, options?: BasesLayoutFormOptions) {
-    this.domNode = document.createElement('button');
+    this.domNode = document.createElement('div');
 
     $(this.domNode)
       .addClass(styles.rotateButton)

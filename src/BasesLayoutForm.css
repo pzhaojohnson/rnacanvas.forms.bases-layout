@@ -3,7 +3,8 @@
 .layout-controls {
   margin-top: 29px;
 
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .bases-layout-form {

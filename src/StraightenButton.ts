@@ -15,7 +15,7 @@ export function StraightenButton(selectedBases: LiveSet<Nucleobase>, options?: B
 
   straightenButton.textContent = 'Straighten';
 
-  $(straightenButton).css({ marginTop: '35px' });
+  $(straightenButton).css({ marginTop: '35px', alignSelf: 'start' });
 
   straightenButton.addEventListener('click', () => {
     options?.beforeMovingBases ? options.beforeMovingBases() : {};

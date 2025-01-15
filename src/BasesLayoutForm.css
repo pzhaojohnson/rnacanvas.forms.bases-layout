@@ -15,14 +15,14 @@
   left: 66px;
   bottom: 60px;
 
-  max-width: 311px;
-  max-height: 553px;
+  max-width: 313px;
+  max-height: 557px;
   margin-right: auto;
 
   overflow: auto;
 
   border: 1px solid #2b0744;
-  border-radius: 15px;
+  border-radius: 12px;
   box-shadow: 0px 2px 16px rgba(0, 0, 0, 0.06);
 
   padding: 20px 0px 50px 32px;
